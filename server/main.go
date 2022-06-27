@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"grpc-lesson/pb"
 	"io/ioutil"
+	"log"
+	"net"
+
+	"google.golang.org/grpc"
 )
 
 type server struct {
@@ -42,4 +46,24 @@ func (*server) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.Lis
 
 	return res, nil
 
+}
+
+func main() {
+	//50051ポートを開く
+	lis, err := net.Listen("tcp", "localhost:50051")
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+	}
+
+	//gRPCのサーバー構造体を取得
+	s := grpc.NewServer()
+
+	//gRPCサーバーに構造体の内容を登録する
+	pb.RegisterFileServiceServer(s, &server{})
+
+	fmt.Println("server is running...")
+	//変数lisのプロトコル、ポート番号でサーバーを起動
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
+	}
 }
