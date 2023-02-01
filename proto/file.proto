@@ -10,8 +10,19 @@ message ListFilesResponse {
     repeated string filenames = 1; //ファイル名のリストを作成するフィールド
 };
 
+message DownLoadRequest {
+   string filename = 1; 
+};
+
+message DownLoadResponse {
+    bytes date = 1;
+};
+
+
+
 service FileService {
     rpc ListFiles (ListFilesRequest) returns (ListFilesResponse);
+    rpc DownLoad (DownLoadRequest) returns (stream DownLoadResponse);
 }
 
 
