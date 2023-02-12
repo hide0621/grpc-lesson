@@ -23,7 +23,7 @@ func (*server) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.Lis
 
 	fmt.Println("ListFiles was invoked")
 
-	dir := "/Users/fujihara_hideyuki/projects/grpc-lesson/strage"
+	dir := "/Users/fujiwarahideyuki/project/grpc-lesson/strage"
 
 	//変数dirのパスを取得して代入
 	paths, err := ioutil.ReadDir(dir)
@@ -55,7 +55,7 @@ func (*server) Download(req *pb.DownLoadRequest, stream pb.FileService_DownLoadS
 	fmt.Println("Download was invoked")
 
 	filename := req.GetFilename()
-	path := "/Users/fujihara_hideyuki/projects/grpc-lesson/strage/" + filename
+	path := "/Users/fujiwarahideyuki/project/grpc-lesson/strage/" + filename
 
 	file, err := os.Open(path)
 	if err != nil {
