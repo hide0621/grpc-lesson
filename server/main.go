@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"grpc-lesson/pb"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
+	"os"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -15,7 +18,7 @@ type server struct {
 	pb.UnimplementedFileServiceServer
 }
 
-//ListFilesメソッドの実装
+// ListFilesメソッドの実装
 func (*server) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.ListFilesResponse, error) {
 
 	fmt.Println("ListFiles was invoked")
@@ -46,6 +49,38 @@ func (*server) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.Lis
 
 	return res, nil
 
+}
+
+func (*server) Download(req *pb.DownLoadRequest, stream pb.FileService_DownLoadServer) error {
+	fmt.Println("Download was invoked")
+
+	filename := req.GetFilename()
+	path := "/Users/fujihara_hideyuki/projects/grpc-lesson/strage/" + filename
+
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	buf := make([]byte, 5)
+	for {
+		n, err := file.Read(buf)
+		if n == 0 || err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		res := &pb.DownLoadResponse{Date: buf[:n]}
+		sendErr := stream.Send(res)
+		if sendErr != nil {
+			return sendErr
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return nil
 }
 
 func main() {
