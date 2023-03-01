@@ -135,6 +135,21 @@ func (*server) UploadAndNotifyProgress(stream pb.FileService_UploadAndNotifyProg
 	}
 }
 
+func myLogging() grpc.UnaryServerInterceptor {
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		log.Printf("request data: %+v", req)
+
+		resp, err = handler(ctx, req) // handler関数は実際はクライアントが呼んだ関数が実行される
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("response data: %+v", resp)
+
+		return resp, nil
+	}
+}
+
 func main() {
 	//50051ポートを開く
 	lis, err := net.Listen("tcp", "localhost:50051")
@@ -143,7 +158,9 @@ func main() {
 	}
 
 	//gRPCのサーバー構造体を取得
-	s := grpc.NewServer()
+	//加えてmyLogging関数をインターセプターに追加
+	// s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(myLogging()))
 
 	//gRPCサーバーに構造体の内容を登録する
 	pb.RegisterFileServiceServer(s, &server{})
