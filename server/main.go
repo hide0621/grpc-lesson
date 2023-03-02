@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"grpc-lesson/pb"
 	"io"
@@ -12,6 +13,8 @@ import (
 	"os"
 	"time"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"google.golang.org/grpc"
 )
 
@@ -150,6 +153,20 @@ func myLogging() grpc.UnaryServerInterceptor {
 	}
 }
 
+func authorize(ctx context.Context) (context.Context, error) {
+
+	token, err := grpc_auth.AuthFromMD(ctx, "Bearer")
+	if err != nil {
+		return nil, err
+	}
+
+	if token != "test-token" {
+		return nil, errors.New("bad token")
+	}
+
+	return ctx, nil
+}
+
 func main() {
 	//50051ポートを開く
 	lis, err := net.Listen("tcp", "localhost:50051")
@@ -160,7 +177,10 @@ func main() {
 	//gRPCのサーバー構造体を取得
 	//加えてmyLogging関数をインターセプターに追加
 	// s := grpc.NewServer()
-	s := grpc.NewServer(grpc.UnaryInterceptor(myLogging()))
+	// s := grpc.NewServer(grpc.UnaryInterceptor(myLogging()))
+
+	//複数のインターセプター（ミドルウェア）を入れる場合は以下の書き方
+	s := grpc.NewServer(grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(myLogging(), grpc_auth.UnaryServerInterceptor(authorize))))
 
 	//gRPCサーバーに構造体の内容を登録する
 	pb.RegisterFileServiceServer(s, &server{})
