@@ -87,7 +87,8 @@ func (*server) Download(req *pb.DownLoadRequest, stream pb.FileService_DownLoadS
 		if sendErr != nil {
 			return sendErr
 		}
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 	return nil
 }

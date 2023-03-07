@@ -47,9 +47,14 @@ func callListFiles(client pb.FileServiceClient) {
 }
 
 func callDownload(client pb.FileServiceClient) {
-	req := &pb.DownLoadRequest{Filename: "name.txt"}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// req := &pb.DownLoadRequest{Filename: "name.txt"}
 	// req := &pb.DownLoadRequest{Filename: "hoge.txt"}
-	stream, err := client.DownLoad(context.Background(), req)
+	req := &pb.DownLoadRequest{Filename: "flower.txt"}
+	stream, err := client.DownLoad(ctx, req)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -63,6 +68,8 @@ func callDownload(client pb.FileServiceClient) {
 			if ok {
 				if resErr.Code() == codes.NotFound {
 					log.Fatalf("Error code :%v, Error Message: %v", resErr.Code(), resErr.Message())
+				} else if resErr.Code() == codes.DeadlineExceeded {
+					log.Fatalln("deadline exceeded")
 				} else {
 					log.Fatalln("unknwon grpc error")
 				}
